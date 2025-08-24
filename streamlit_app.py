@@ -1,8 +1,22 @@
 import streamlit as st
 import numpy as np
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-from formulas import blackScholes, calculate_implied_volatility
+
+# Try to import plotly, with fallback
+try:
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+    PLOTLY_AVAILABLE = True
+except ImportError:
+    PLOTLY_AVAILABLE = False
+    st.error("Plotly not available. Please install with: pip install plotly")
+
+# Try to import our formulas module
+try:
+    from formulas import blackScholes, calculate_implied_volatility
+    FORMULAS_AVAILABLE = True
+except ImportError as e:
+    FORMULAS_AVAILABLE = False
+    st.error(f"Could not import formulas module: {e}")
 
 # Page configuration
 st.set_page_config(
@@ -37,6 +51,11 @@ st.markdown("""
 def main():
     # Header
     st.markdown('<h1 class="main-header">📈 Options Pricer - Black-Scholes Model</h1>', unsafe_allow_html=True)
+    
+    # Check if required modules are available
+    if not FORMULAS_AVAILABLE:
+        st.error("❌ Required modules not available. Please check the deployment logs.")
+        return
     
     # Sidebar for parameters
     with st.sidebar:
@@ -122,6 +141,10 @@ def main():
     st.markdown("---")
     st.header("📈 Charts & Analysis")
     
+    if not PLOTLY_AVAILABLE:
+        st.warning("⚠️ Charts are not available. Please install plotly for full functionality.")
+        return
+    
     # Sensitivity Analysis
     st.subheader("Sensitivity Analysis")
     sensitivity_param = st.selectbox(
@@ -153,6 +176,9 @@ def main():
 
 def create_sensitivity_chart(S, K, T, r, sigma, param_name):
     """Create sensitivity analysis chart"""
+    if not PLOTLY_AVAILABLE:
+        return None
+        
     if param_name == "Stock Price":
         x_range = np.linspace(50, 150, 100)
         x_label = "Stock Price ($)"
@@ -211,6 +237,9 @@ def create_sensitivity_chart(S, K, T, r, sigma, param_name):
 
 def create_payoff_chart(S, K, T, r, sigma):
     """Create payoff diagram"""
+    if not PLOTLY_AVAILABLE:
+        return None
+        
     S_range = np.linspace(50, 150, 100)
     
     # Payoff calculations
@@ -265,6 +294,9 @@ def create_payoff_chart(S, K, T, r, sigma):
 
 def create_greeks_chart(S, K, T, r, sigma):
     """Create Greeks visualization chart"""
+    if not PLOTLY_AVAILABLE:
+        return None
+        
     S_range = np.linspace(50, 150, 100)
     
     deltas_call = []
